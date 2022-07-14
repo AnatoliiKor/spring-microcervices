@@ -1,48 +1,70 @@
 package com.example.ec.domain;
 
-import javax.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
+@Document
 public class TourRating {
-    @EmbeddedId
-    private TourRatingPk pk;
 
-    @Column(nullable = false)
+    @Id
+    private String id;
+
+    private String tourId;
+
+    @Min(0)
+    @Max(5)
     private int score;
 
-    @Column
+    @Size(max = 255)
     private String comment;
 
-    public TourRating(TourRatingPk pk, int score, String comment) {
-        this.pk = pk;
+    @NotNull
+    private int customerId;
+
+    public TourRating(String tourId, int score, String comment, int customerId) {
+        this.tourId = tourId;
         this.score = score;
         this.comment = comment;
+        this.customerId = customerId;
     }
 
     protected TourRating() {
     }
 
-    public TourRatingPk getPk() {
-        return pk;
+    public String getTourId() {
+        return tourId;
     }
 
-    public int getScore() {
+    public void setTourId(String tourId) {
+        this.tourId = tourId;
+    }
+
+    public Integer getScore() {
         return score;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setPk(TourRatingPk pk) {
-        this.pk = pk;
     }
 
     public void setScore(int score) {
         this.score = score;
     }
 
+    public String getComment() {
+        return comment;
+    }
+
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public int getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;
     }
 }

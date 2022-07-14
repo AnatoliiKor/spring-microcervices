@@ -1,7 +1,5 @@
 package com.example.ec;
 
-import com.example.ec.domain.Difficulty;
-import com.example.ec.domain.Region;
 import com.example.ec.service.TourPackageService;
 import com.example.ec.service.TourRatingService;
 import com.example.ec.service.TourService;
@@ -15,6 +13,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static com.fasterxml.jackson.annotation.PropertyAccessor.FIELD;
@@ -41,15 +41,16 @@ public class ExplorecaliApplication implements CommandLineRunner {
 
     private void loadToursAtStartup() throws IOException {
         //Create the Tour Packages
-        createTourPackages();
+//        createTourPackages();
         long numOfPackages = tourPackageService.total();
-
+        System.out.println(numOfPackages);
         //Load the tours from an external Json File
-        createTours("ExploreCalifornia.json");
+//        createTours("ExploreCalifornia.json");
         long numOfTours = tourService.total();
-
-        createTourRating();
+        System.out.println(numOfTours);
+//        createTourRating();
         long numOfRatings = tourRatingService.total();
+        System.out.println(numOfRatings);
     }
 
 
@@ -69,18 +70,18 @@ public class ExplorecaliApplication implements CommandLineRunner {
     }
 
     private void createTourRating() {
-        tourRatingService.createTourRating(1, 5, "Cool", 1);
-        tourRatingService.createTourRating(1, 4, "CertoolNot", 2);
-        tourRatingService.createTourRating(1, 3, "Certool", 3);
-        tourRatingService.createTourRating(1, 2, "Certool", 4);
-        tourRatingService.createTourRating(1, 4, "Cool", 5);
-        tourRatingService.createTourRating(1, 2, "Coetol", 6);
-        tourRatingService.createTourRating(1, 1, "Certool", 7);
-        tourRatingService.createTourRating(2, 1, "Cool@", 1);
-        tourRatingService.createTourRating(2, 4, "Cool", 2);
-        tourRatingService.createTourRating(2, 2, "Cool", 3);
-        tourRatingService.createTourRating(2, 1, "Cool", 4);
-//        tourRatingService.createTourRating(52, 1, "Cool", 4);
+        tourRatingService.createTourRatingInDb("62cecaf682ca9175d8b166e3", 5, "Cool", 1);
+        tourRatingService.createTourRatingInDb("62cecaf682ca9175d8b166e3", 4, "CertoolNot", 2);
+        tourRatingService.createTourRatingInDb("62cecaf682ca9175d8b166e3", 3, "Certool", 3);
+        tourRatingService.createTourRatingInDb("62cecaf682ca9175d8b166e3", 2, "Certool", 4);
+        tourRatingService.createTourRatingInDb("62cecaf682ca9175d8b166e3", 4, "Cool", 5);
+        tourRatingService.createTourRatingInDb("62cecaf682ca9175d8b166e3", 2, "Coetol", 6);
+        tourRatingService.createTourRatingInDb("62cecaf682ca9175d8b166e3", 1, "Certool", 7);
+        tourRatingService.createTourRatingInDb("62cecaf682ca9175d8b166e4", 1, "Cool@", 1);
+        tourRatingService.createTourRatingInDb("62cecaf682ca9175d8b166e4", 4, "Cool", 2);
+        tourRatingService.createTourRatingInDb("62cecaf682ca9175d8b166e4", 2, "Cool", 3);
+        tourRatingService.createTourRatingInDb("62cecaf682ca9175d8b166e4", 1, "Cool", 4);
+//        tourRatingService.createTourRating("52", 1, "Cool", 4);
 
     }
 
@@ -89,16 +90,7 @@ public class ExplorecaliApplication implements CommandLineRunner {
      */
     private void createTours(String fileToImport) throws IOException {
         TourFromFile.read(fileToImport).forEach(importedTour ->
-                tourService.createTour(importedTour.getTitle(),
-                        importedTour.getDescription(),
-                        importedTour.getBlurb(),
-                        importedTour.getPrice(),
-                        importedTour.getLength(),
-                        importedTour.getBullets(),
-                        importedTour.getKeywords(),
-                        importedTour.getPackageType(),
-                        importedTour.getDifficulty(),
-                        importedTour.getRegion()));
+                tourService.createTour(importedTour.getTitle(), importedTour.getPackageName(), importedTour.getDetails()));
     }
 
     /**
@@ -106,58 +98,38 @@ public class ExplorecaliApplication implements CommandLineRunner {
      */
     private static class TourFromFile {
         //fields
-        private String packageType, title, description, blurb, price, length, bullets, keywords, difficulty, region;
+        private String packageName;
+        private String title;
+        private Map<String, String> details;
+
+        public TourFromFile(Map<String, String> record) {
+            this.title = record.get("title");
+            this.packageName = record.get("packageType");
+            this.details = record;
+            this.details.remove("packageType");
+            this.details.remove("title");
+        }
 
         //reader
         static List<TourFromFile> read(String fileToImport) throws IOException {
-            return new ObjectMapper().setVisibility(FIELD, ANY).
-                    readValue(new FileInputStream(fileToImport), new TypeReference<List<TourFromFile>>() {
-                    });
+            List<Map<String, String>> records = new ObjectMapper().setVisibility(FIELD, ANY)
+                            .readValue(new FileInputStream(fileToImport), new TypeReference<>() {});
+            return records.stream().map(TourFromFile::new).collect(Collectors.toList());
         }
 
         protected TourFromFile() {
         }
 
-        String getPackageType() {
-            return packageType;
+        public String getPackageName() {
+            return packageName;
         }
 
-        String getTitle() {
+        public String getTitle() {
             return title;
         }
 
-        String getDescription() {
-            return description;
-        }
-
-        String getBlurb() {
-            return blurb;
-        }
-
-        Integer getPrice() {
-            return Integer.parseInt(price);
-        }
-
-        String getLength() {
-            return length;
-        }
-
-        String getBullets() {
-            return bullets;
-        }
-
-        String getKeywords() {
-            return keywords;
-        }
-
-        Difficulty getDifficulty() {
-            return Difficulty.valueOf(difficulty);
-        }
-
-        Region getRegion() {
-            return Region.findByLabel(region);
+        public Map<String, String> getDetails() {
+            return details;
         }
     }
-
-
 }

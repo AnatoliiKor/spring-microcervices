@@ -1,7 +1,6 @@
 package com.example.ec.repo;
 
 import com.example.ec.domain.TourRating;
-import com.example.ec.domain.TourRatingPk;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
@@ -11,15 +10,13 @@ import java.util.List;
 import java.util.Optional;
 
 @RepositoryRestResource(exported = false)
-public interface TourRatingRepository extends CrudRepository<TourRating, TourRatingPk> {
+public interface TourRatingRepository extends CrudRepository<TourRating, String> {
 
-    List<TourRating> findByPkTourId(int tourId);
+    List<TourRating> findByTourId(String tourId);
 
-    Page<TourRating> findByPkTourId(int tourId, Pageable pageable);
+    Page<TourRating> findByTourId(String tourId, Pageable pageable);
 
-    Optional<TourRating> findByPkTourIdAndPkCustomerId(int tourId, int customerId);
+    Optional<TourRating> findByTourIdAndCustomerId(String tourId, int customerId);
 
-//    void delete(TourRating tourRating);
-
-    List<TourRating> findByPkCustomerId(int customerId);
+    List<TourRating> findByCustomerId(int customerId);
 }
